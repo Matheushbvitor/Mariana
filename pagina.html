@@ -1,24 +1,29 @@
-<!-- pagina.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Por que eu quero uma chance?</title>
-  <!-- 🔔 ALERTA DE VISITA (envio POST via Apps Script) -->
+
+  <!-- 🔔 ALERTA DE VISITA (POST p/ Apps Script; debounce no load + reforço no pagehide) -->
   <script>
-    /*
-      Envia um ping para o Web App do Apps Script sempre que a página
-      for carregada. Usa sessionStorage para evitar envios duplicados
-      durante a mesma sessão. Ajuste WEBAPP_URL para apontar para o
-      seu endpoint do Apps Script.
-    */
     (function () {
       const WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbycnxliX4ULBajRLvaxrNCJLnnWXvJnVYO5LMKlZzS1Q6E-XgpLqrgrVoTdv_HCmBE/exec";
 
+      function getBody() {
+        let tz = "";
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
+        return JSON.stringify({
+          ts: Date.now(),
+          tz,
+          ua: navigator.userAgent || "",
+          url: location.href,
+          ref: document.referrer || ""
+        });
+      }
       function postPing() {
-        const body = JSON.stringify({ ts: Date.now(), url: location.href });
+        const body = getBody();
         try {
           if ("sendBeacon" in navigator) {
             const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
@@ -29,65 +34,60 @@
               mode: "no-cors",
               headers: { "Content-Type": "text/plain;charset=UTF-8" },
               body,
-              keepalive: true,
+              keepalive: true
             });
           }
-        } catch (err) {}
+        } catch {}
       }
-      function sendOnce() {
+
+      addEventListener("load", () => {
+        const KEY = "visitPingPag2";
         try {
-          const key = "visitPingSent";
-          if (!sessionStorage.getItem(key)) {
+          if (!sessionStorage.getItem(KEY)) {
+            sessionStorage.setItem(KEY, "1");
             postPing();
-            sessionStorage.setItem(key, "1");
           }
-        } catch (e) {
-          postPing();
-        }
-      }
-      window.addEventListener("load", sendOnce);
-      window.addEventListener("pagehide", sendOnce);
+        } catch { postPing(); }
+      });
+      addEventListener("pagehide", postPing);
     })();
   </script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    :root { --card-bg: rgba(0,0,0,.55); --radius:16px; }
+    :root { --card-bg: rgba(0,0,0,.55); --radius: 20px; }
 
     body{
       margin:0;
-      /* Preenche totalmente a altura disponível e considera barra de endereço em dispositivos móveis */
       min-height:100svh;
       background:#ffffff;
       background-image:url("IMG_20250823_124847408.jpg");
-      /* Ajusta a imagem de fundo para cobrir toda a área sem distorcer */
       background-size:cover;
       background-position:center;
       background-repeat:no-repeat;
       display:grid;
       place-items:center;
-      /* Padding responsivo que varia conforme o tamanho da tela */
-      padding:clamp(16px,4vw,32px);
-      font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+      padding: clamp(12px, 3vw, 24px);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+      text-align:center;
     }
 
     .card{
-      /* Largura fluida: 600px em telas maiores e quase toda a tela em celulares */
-      width:min(600px,94vw);
-      background:var(--card-bg);
+      width: min(600px, 94vw);
+      background: var(--card-bg);
       color:#fff;
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:clamp(12px,2.8vw,16px);
-      /* Padding responsivo: mais confortável em telas grandes, mais compacto em pequenas */
-      padding:clamp(16px,4vw,32px);
-      border-radius:var(--radius);
+      gap: clamp(12px, 2.8vw, 16px);
+      padding: clamp(16px,4vw,28px);
+      border-radius: var(--radius);
       text-align:center;
-      backdrop-filter:blur(2px);
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
     }
 
-    h1{ margin:0; font-size: clamp(1.6rem, 4.8vw, 2.6rem); line-height:1.2; text-shadow:0 1px 2px rgba(0,0,0,.55); }
+    h1{ margin:0; font-size: clamp(1.6rem, 4.8vw, 2.2rem); line-height:1.2; text-shadow:0 1px 2px rgba(0,0,0,.55); }
 
     .typing{
       font-size: clamp(1rem, 3.6vw, 1.2rem);
@@ -125,6 +125,7 @@
     .btn:active{ transform:scale(.98); }
     .btn:hover{ filter:brightness(1.05); }
 
+    /* Easter eggs (botões redondos) */
     .egg-btn{
       position:relative; isolation:isolate;
       width:52px; height:52px;
@@ -142,7 +143,6 @@
     .egg-btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.3); }
     .egg-brain{ --accent: rgba(255,106,162,.45); }
     .egg-dict { --accent: rgba(255,184,77,.45);  }
-
     .egg-btn.attn{ animation: egg-pulse 1.7s ease-in-out infinite; }
     #eggBrain.attn{ animation-delay: .2s; }
     #eggDict.attn { animation-delay: .9s; }
@@ -160,8 +160,7 @@
     .egg-left{ justify-self:start; }
     .egg-right{ justify-self:end; }
 
-    audio{ display:none; }
-
+    /* Modal dos easter eggs */
     .egg-overlay{
       position: fixed; inset: 0; background: rgba(0,0,0,.5);
       display: none; align-items: center; justify-content: center;
@@ -176,8 +175,7 @@
       padding: 20px 18px 16px; text-align: left;
     }
     .egg-box h2{
-      margin: 0 0 10px; font-size: clamp(1.05rem, 3.8vw, 1.25rem);
-      color:#222;
+      margin: 0 0 10px; font-size: clamp(1.05rem, 3.8vw, 1.25rem); color:#222;
     }
     .egg-box h2.reveal10{ animation: revealColor10 10s ease forwards; }
     .egg-box .content{
@@ -186,13 +184,10 @@
     .egg-box .content.reveal10{ animation: revealColor10 10s ease forwards; }
     @keyframes revealColor10{ from{ color:#fff } to{ color:#222 } }
 
-    .egg-actions{ display:flex; justify-content:flex-end; margin-top: 14px; }
-
     @media (prefers-reduced-motion: reduce){
       .egg-btn.attn, .egg-btn.attn::before, .egg-btn.attn::after,
       .egg-box h2.reveal10, .egg-box .content.reveal10{ animation: none !important; color:#222 !important; }
     }
-
     @media (max-width:560px){
       .egg-btn{ width:46px; height:46px; font-size:22px; }
     }
@@ -234,13 +229,13 @@
     </div>
   </div>
 
-  <!-- 🎵 Fundo da PÁGINA (careless_whispers) -->
+  <!-- 🎵 Fundo desta página -->
   <audio id="bgm" src="careless_whispers.mp3" autoplay loop playsinline></audio>
 
   <script>
     function retornar(){ window.location.href = "index.html"; }
 
-    // Autoplay amigável (chega aqui via clique do usuário na página anterior, então deve tocar)
+    // Autoplay amigável
     window.addEventListener("load", () => {
       const a = document.getElementById("bgm");
       a.volume = 0.6;
@@ -252,7 +247,7 @@
       window.addEventListener("focus", tryPlay);
     });
 
-    /* Texto digitando */
+    /* Texto principal digitando (~10s) */
     const texto =
 `Tem pessoas que a gente conhece e logo sente:
 “Essa aí é diferente.”
@@ -269,7 +264,7 @@ E todas as outras que só você tem.`;
 
     const destino = document.getElementById("textoDigitado");
     let index = 0;
-    const BASE_INTERVAL   = 9;
+    const BASE_INTERVAL   = 9;   // mais rápido
     const COMMA_PAUSE     = 14;
     const SENTENCE_PAUSE  = 29;
     const REVEAL_DELAY    = 67;
@@ -313,7 +308,7 @@ E todas as outras que só você tem.`;
     }
     window.addEventListener('load', digitarSequencial);
 
-    /* Modal + digitação */
+    /* Modal + digitação nos easter eggs (10s no texto) */
     const modal = document.getElementById('eggModal');
     const eggTitle = document.getElementById('eggTitle');
     const eggContent = document.getElementById('eggContent');
@@ -322,7 +317,7 @@ E todas as outras que só você tem.`;
     const BRAIN_TITLE = '🧠 Vamos analisar esse caso clínico...';
     const BRAIN_TEXT  = 'Paciente apresenta sintomas de apego progressivo, pensamento acelerado, sorriso involuntário, e comportamento de admiração. Diagnóstico provável: envolvimento afetivo crônico não resolvido.';
 
-    const DICT_TITLE = '📚 Palavra do dia: “Mariana”';
+    const DICT_TITLE = '📚 Palavra do dia: “Mari”';
     const DICT_TEXT  = 'Substantivo feminino. Unidade de medida para tudo que faz bem, inspira paz, e melhora o humor de alguém chamado Matheus.';
 
     let titleTimer = null, contentTimer = null;
@@ -331,7 +326,6 @@ E todas as outras que só você tem.`;
       if (titleTimer) { clearInterval(titleTimer); titleTimer = null; }
       if (contentTimer) { clearInterval(contentTimer); contentTimer = null; }
     }
-
     function typeString(el, text, durationMs){
       el.innerHTML = '';
       const chars = Array.from(text);
@@ -347,7 +341,6 @@ E todas as outras que só você tem.`;
       }, step);
       return timer;
     }
-
     function openEgg(title, text){
       clearTimers();
       eggTitle.classList.remove('reveal10');
