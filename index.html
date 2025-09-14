@@ -56,6 +56,8 @@
     /* ===== BASE ===== */
     :root{ --bg-dim: .75; }
 
+    html, body { max-width: 100%; overflow-x: hidden; } /* evita qualquer deslocamento lateral */
+
     body{
       margin:0;
       min-height:100svh;
@@ -85,7 +87,12 @@
     /* ===== CARD (engloba tudo e fica centralizado) ===== */
     .card{
       position:relative; z-index:2;
-      width:min(900px,96vw);               /* igual ao feel da "pagina" */
+      /* FIX mobile center: usar largura responsiva dentro do padding do .stage */
+      width:100%;
+      max-width:900px;
+      margin-inline:auto;
+      box-sizing:border-box;
+
       max-height:92svh;                    /* não passa da tela */
       overflow:auto;                       /* rola por dentro se precisar */
       background:rgba(0,0,0,.55);
@@ -99,6 +106,19 @@
       text-align:center;
       backdrop-filter:blur(2px);
       box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+
+    /* FIX mobile center: respeitar safe areas e garantir centralização */
+    @media (max-width: 768px) {
+      .stage{
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        justify-items:center;
+      }
+      .card{
+        width:100%;
+        max-width:900px;
+      }
     }
 
     h1.title{
@@ -433,7 +453,7 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
     function parseGroup(block, letter){
       const re=new RegExp(`\\[${letter}\\]([\\s\\S]*?)(?=\\n\\[|---FIM---)`,'m');
       const m=block.match(re); if(!m) return [];
-      return m[1].split('\n').map(l=>l.replace(/^\\s*-\\s*/,'').trim()).filter(Boolean);
+      return m[1].split('\n').map(l=>l.replace(/^\s*-\s*/,'').trim()).filter(Boolean);
     }
     const GROUPS={ M:parseGroup(ACRONYM_BLOCK,'M'), A:parseGroup(ACRONYM_BLOCK,'A'), R:parseGroup(ACRONYM_BLOCK,'R'), I:parseGroup(ACRONYM_BLOCK,'I'), N:parseGroup(ACRONYM_BLOCK,'N') };
     function pickOne(arr,avoid){ const pool=arr.filter(x=>x!==avoid); return pool.length?pool[Math.floor(Math.random()*pool.length)]:(arr[0]||''); }
