@@ -1,0 +1,379 @@
+<!-- pagina.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Por que eu quero uma chance?</title>
+  <!-- 🔔 ALERTA DE VISITA (envio POST via Apps Script) -->
+  <script>
+    /*
+      Envia um ping para o Web App do Apps Script sempre que a página
+      for carregada. Usa sessionStorage para evitar envios duplicados
+      durante a mesma sessão. Ajuste WEBAPP_URL para apontar para o
+      seu endpoint do Apps Script.
+    */
+    (function () {
+      const WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbycnxliX4ULBajRLvaxrNCJLnnWXvJnVYO5LMKlZzS1Q6E-XgpLqrgrVoTdv_HCmBE/exec";
+
+      function postPing() {
+        const body = JSON.stringify({ ts: Date.now(), url: location.href });
+        try {
+          if ("sendBeacon" in navigator) {
+            const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+            navigator.sendBeacon(WEBAPP_URL, blob);
+          } else {
+            fetch(WEBAPP_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "text/plain;charset=UTF-8" },
+              body,
+              keepalive: true,
+            });
+          }
+        } catch (err) {}
+      }
+      function sendOnce() {
+        try {
+          const key = "visitPingSent";
+          if (!sessionStorage.getItem(key)) {
+            postPing();
+            sessionStorage.setItem(key, "1");
+          }
+        } catch (e) {
+          postPing();
+        }
+      }
+      window.addEventListener("load", sendOnce);
+      window.addEventListener("pagehide", sendOnce);
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { --card-bg: rgba(0,0,0,.55); --radius:16px; }
+
+    body{
+      margin:0;
+      /* Preenche totalmente a altura disponível e considera barra de endereço em dispositivos móveis */
+      min-height:100svh;
+      background:#ffffff;
+      background-image:url("IMG_20250823_124847408.jpg");
+      /* Ajusta a imagem de fundo para cobrir toda a área sem distorcer */
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      display:grid;
+      place-items:center;
+      /* Padding responsivo que varia conforme o tamanho da tela */
+      padding:clamp(16px,4vw,32px);
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .card{
+      /* Largura fluida: 600px em telas maiores e quase toda a tela em celulares */
+      width:min(600px,94vw);
+      background:var(--card-bg);
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:clamp(12px,2.8vw,16px);
+      /* Padding responsivo: mais confortável em telas grandes, mais compacto em pequenas */
+      padding:clamp(16px,4vw,32px);
+      border-radius:var(--radius);
+      text-align:center;
+      backdrop-filter:blur(2px);
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+
+    h1{ margin:0; font-size: clamp(1.6rem, 4.8vw, 2.6rem); line-height:1.2; text-shadow:0 1px 2px rgba(0,0,0,.55); }
+
+    .typing{
+      font-size: clamp(1rem, 3.6vw, 1.2rem);
+      line-height: 1.7;
+      color:#fff;
+      text-align:left;
+      max-width: min(760px, 92vw);
+      margin: 0 auto;
+      border-right: 2px solid rgba(255,255,255,.9);
+      animation: blink-caret .75s step-end infinite;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+    }
+    @keyframes blink-caret { 50% { border-color: transparent; } }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items:center;
+      gap: 12px;
+      width:100%;
+      max-width:min(760px, 92vw);
+      margin-top: 6px;
+    }
+    .btn{
+      padding:.85rem 1.1rem;
+      font-size: clamp(1rem, 3.4vw, 1.125rem);
+      border:none; border-radius:10px;
+      background:#4CAF50; color:#fff; cursor:pointer;
+      transition: transform .15s ease, filter .15s ease;
+      justify-self:center;
+      min-height:44px;
+    }
+    .btn:active{ transform:scale(.98); }
+    .btn:hover{ filter:brightness(1.05); }
+
+    .egg-btn{
+      position:relative; isolation:isolate;
+      width:52px; height:52px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px; line-height:1;
+      border-radius:999px;
+      background: radial-gradient(120% 120% at 30% 30%, #ffffff, #f6f6f6 70%);
+      color:#222;
+      box-shadow: 0 10px 24px rgba(0,0,0,.28), 0 0 0 2px rgba(0,0,0,.06);
+      border:1px solid rgba(0,0,0,.08);
+      cursor:pointer; backdrop-filter: blur(4px);
+      transition: transform .15s ease, box-shadow .15s ease;
+      user-select:none;
+    }
+    .egg-btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.3); }
+    .egg-brain{ --accent: rgba(255,106,162,.45); }
+    .egg-dict { --accent: rgba(255,184,77,.45);  }
+
+    .egg-btn.attn{ animation: egg-pulse 1.7s ease-in-out infinite; }
+    #eggBrain.attn{ animation-delay: .2s; }
+    #eggDict.attn { animation-delay: .9s; }
+    .egg-btn.attn::before,
+    .egg-btn.attn::after{
+      content:""; position:absolute; inset:-10px; border-radius:inherit; z-index:-1;
+      box-shadow: 0 0 0 0 var(--accent);
+      opacity:.35; transform: scale(.85);
+      animation: egg-ring 2.1s ease-out infinite;
+    }
+    .egg-btn.attn::after{ animation-delay: .9s; opacity:.25; }
+    @keyframes egg-pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+    @keyframes egg-ring{ 0%{ box-shadow:0 0 0 0 var(--accent); opacity:.35; transform:scale(.85) } 70%{ opacity:0 } 100%{ box-shadow:0 0 0 26px rgba(0,0,0,0); transform:scale(1.4) } }
+
+    .egg-left{ justify-self:start; }
+    .egg-right{ justify-self:end; }
+
+    audio{ display:none; }
+
+    .egg-overlay{
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: none; align-items: center; justify-content: center;
+      padding: 18px; z-index: 30;
+    }
+    .egg-overlay.show{ display:flex; }
+
+    .egg-box{
+      width: min(560px, 94vw);
+      background: #fff; color: #222;
+      border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      padding: 20px 18px 16px; text-align: left;
+    }
+    .egg-box h2{
+      margin: 0 0 10px; font-size: clamp(1.05rem, 3.8vw, 1.25rem);
+      color:#222;
+    }
+    .egg-box h2.reveal10{ animation: revealColor10 10s ease forwards; }
+    .egg-box .content{
+      white-space: pre-wrap; line-height: 1.6; font-size: clamp(1rem, 3.4vw, 1.1rem); color:#222; min-height:1em;
+    }
+    .egg-box .content.reveal10{ animation: revealColor10 10s ease forwards; }
+    @keyframes revealColor10{ from{ color:#fff } to{ color:#222 } }
+
+    .egg-actions{ display:flex; justify-content:flex-end; margin-top: 14px; }
+
+    @media (prefers-reduced-motion: reduce){
+      .egg-btn.attn, .egg-btn.attn::before, .egg-btn.attn::after,
+      .egg-box h2.reveal10, .egg-box .content.reveal10{ animation: none !important; color:#222 !important; }
+    }
+
+    @media (max-width:560px){
+      .egg-btn{ width:46px; height:46px; font-size:22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Por que eu quero uma chance? 💖</h1>
+
+    <p id="textoDigitado" class="typing" aria-live="polite"></p>
+
+    <div class="actions">
+      <button
+        id="eggBrain"
+        class="egg-btn egg-left egg-brain attn"
+        aria-label="Abrir: Vamos analisar esse caso clínico..."
+        title="🧠 Vamos analisar esse caso clínico..."
+      >🧠</button>
+
+      <button class="btn" onclick="retornar()">Retornar</button>
+
+      <button
+        id="eggDict"
+        class="egg-btn egg-right egg-dict attn"
+        aria-label="Abrir: Palavra do dia: “Mari”"
+        title="📚 Palavra do dia: “Mari”"
+      >📚</button>
+    </div>
+  </div>
+
+  <!-- Modal dos easter eggs -->
+  <div id="eggModal" class="egg-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="egg-box" role="document">
+      <h2 id="eggTitle">Título</h2>
+      <div id="eggContent" class="content"></div>
+      <div class="egg-actions">
+        <button id="eggClose" class="btn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎵 Fundo da PÁGINA (careless_whispers) -->
+  <audio id="bgm" src="careless_whispers.mp3" autoplay loop playsinline></audio>
+
+  <script>
+    function retornar(){ window.location.href = "index.html"; }
+
+    // Autoplay amigável (chega aqui via clique do usuário na página anterior, então deve tocar)
+    window.addEventListener("load", () => {
+      const a = document.getElementById("bgm");
+      a.volume = 0.6;
+      const tryPlay = () => a.play().catch(() => {});
+      tryPlay();
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") tryPlay();
+      });
+      window.addEventListener("focus", tryPlay);
+    });
+
+    /* Texto digitando */
+    const texto =
+`Tem pessoas que a gente conhece e logo sente:
+“Essa aí é diferente.”
+E você é.
+Empática, cativante, honesta, atenciosa, trabalhadora...
+Daquelas mulheres raras que a vida não fabrica mais, uma verdadeira edição limitada.
+Além de educada e de boa família, dá pra ver de longe que você carrega valores que hoje são raridade.
+Mesmo sendo brava (rs), continua sendo uma daquelas pessoas que fazem bem só por estarem por perto.
+E como se tudo isso não bastasse… ainda tem o coração palmeirense.
+E olha… nem comecei a falar da sua beleza, do seu sorriso, e desse seu jeitinho doce que desarma até os dias mais difíceis.
+Com tudo isso, só me resta pedir uma chance…
+Pra te mostrar com calma, com respeito e com verdade que você merece alguém que enxergue, admire e valorize cada uma dessas qualidades.
+E todas as outras que só você tem.`;
+
+    const destino = document.getElementById("textoDigitado");
+    let index = 0;
+    const BASE_INTERVAL   = 9;
+    const COMMA_PAUSE     = 14;
+    const SENTENCE_PAUSE  = 29;
+    const REVEAL_DELAY    = 67;
+    const FADE_DURATION   = 20;
+
+    function nextDelayFor(c){
+      if (c === ',' || c === ';') return BASE_INTERVAL + COMMA_PAUSE;
+      if ('.!?…'.includes(c))     return BASE_INTERVAL + SENTENCE_PAUSE;
+      return BASE_INTERVAL;
+    }
+    function digitarSequencial(){
+      if (index >= texto.length){
+        destino.style.borderRight = 'none';
+        return;
+      }
+      const c = texto.charAt(index);
+      if (c === ' '){
+        destino.append(' '); index++;
+        return setTimeout(digitarSequencial, BASE_INTERVAL);
+      }
+      if (c === '\n'){
+        destino.appendChild(document.createElement('br')); index++;
+        return setTimeout(digitarSequencial, BASE_INTERVAL + SENTENCE_PAUSE);
+      }
+      const span = document.createElement('span');
+      span.textContent = '❤️';
+      span.style.display = 'inline';
+      span.style.opacity = '1';
+      span.style.transition = `opacity ${FADE_DURATION}ms ease`;
+      destino.appendChild(span);
+
+      setTimeout(()=>{
+        span.style.opacity = '0';
+        setTimeout(()=>{
+          span.textContent = c;
+          span.style.opacity = '1';
+          index++;
+          setTimeout(digitarSequencial, nextDelayFor(c));
+        }, FADE_DURATION);
+      }, REVEAL_DELAY);
+    }
+    window.addEventListener('load', digitarSequencial);
+
+    /* Modal + digitação */
+    const modal = document.getElementById('eggModal');
+    const eggTitle = document.getElementById('eggTitle');
+    const eggContent = document.getElementById('eggContent');
+    const eggClose = document.getElementById('eggClose');
+
+    const BRAIN_TITLE = '🧠 Vamos analisar esse caso clínico...';
+    const BRAIN_TEXT  = 'Paciente apresenta sintomas de apego progressivo, pensamento acelerado, sorriso involuntário, e comportamento de admiração. Diagnóstico provável: envolvimento afetivo crônico não resolvido.';
+
+    const DICT_TITLE = '📚 Palavra do dia: “Mariana”';
+    const DICT_TEXT  = 'Substantivo feminino. Unidade de medida para tudo que faz bem, inspira paz, e melhora o humor de alguém chamado Matheus.';
+
+    let titleTimer = null, contentTimer = null;
+
+    function clearTimers(){
+      if (titleTimer) { clearInterval(titleTimer); titleTimer = null; }
+      if (contentTimer) { clearInterval(contentTimer); contentTimer = null; }
+    }
+
+    function typeString(el, text, durationMs){
+      el.innerHTML = '';
+      const chars = Array.from(text);
+      const total = chars.length;
+      if (total === 0) return;
+      const step = Math.max(10, Math.floor(durationMs / total));
+      let i = 0;
+      const timer = setInterval(() => {
+        const ch = chars[i++];
+        if (ch === '\n') el.appendChild(document.createElement('br'));
+        else el.append(ch);
+        if (i >= total) clearInterval(timer);
+      }, step);
+      return timer;
+    }
+
+    function openEgg(title, text){
+      clearTimers();
+      eggTitle.classList.remove('reveal10');
+      eggContent.classList.remove('reveal10');
+      void eggTitle.offsetWidth; void eggContent.offsetWidth;
+      eggTitle.classList.add('reveal10');
+      eggContent.classList.add('reveal10');
+
+      titleTimer   = typeString(eggTitle,  title, 1500);
+      contentTimer = typeString(eggContent,text, 10000);
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      eggClose.focus();
+    }
+    function closeEgg(){
+      clearTimers();
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('eggBrain').addEventListener('click', ()=>openEgg(BRAIN_TITLE, BRAIN_TEXT));
+    document.getElementById('eggDict').addEventListener('click',  ()=>openEgg(DICT_TITLE,  DICT_TEXT));
+    eggClose.addEventListener('click', closeEgg);
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) closeEgg(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeEgg(); });
+  </script>
+</body>
+</html>
