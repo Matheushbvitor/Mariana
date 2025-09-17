@@ -8,7 +8,8 @@
   <!-- 🔔 ALERTA DE VISITA (envio POST via Apps Script) -->
   <script>
     (function () {
-      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
+      const WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
 
       function payload() {
         let tz = "";
@@ -21,36 +22,33 @@
           ref: document.referrer || ""
         });
       }
-
-      let sent = false;
       function postPing() {
-        if (sent) return;
-        sent = true;
         const body = payload();
         try {
-          if (navigator.sendBeacon) {
-            navigator.sendBeacon(WEBAPP_URL, body);
+          if ("sendBeacon" in navigator) {
+            const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+            navigator.sendBeacon(WEBAPP_URL, blob);
           } else {
             fetch(WEBAPP_URL, {
               method: "POST",
               mode: "no-cors",
+              headers: { "Content-Type": "text/plain;charset=UTF-8" },
+              body,
               keepalive: true,
-              body: body
             });
           }
-        } catch (e) {
-          console.error("Erro ao enviar ping:", e);
-        }
+        } catch {}
       }
-
-      // Disparos em eventos chave, com deduplicação
-      document.addEventListener("DOMContentLoaded", postPing);
-      window.addEventListener("pageshow", postPing);
-      window.addEventListener("load", postPing);
-      window.addEventListener("pagehide", postPing);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") postPing();
+      addEventListener("load", () => {
+        const KEY = "visitPingSent";
+        try {
+          if (!sessionStorage.getItem(KEY)) {
+            sessionStorage.setItem(KEY, "1");
+            postPing();
+          }
+        } catch { postPing(); }
       });
+      addEventListener("pagehide", postPing);
     })();
   </script>
 
@@ -338,7 +336,7 @@
       pauseBGM(); stopSadLoop();
       await playFromElementOrNew('feliznavida-audio','feliznavida.mp3',0.5);
       const msg = encodeURIComponent('Você tem chance Matheusão !!🤩💚');
-      setTimeout(()=>{ window.location.href=`https://wa.me/5.518996259121e+12?text=${msg}`; },4500);
+      setTimeout(()=>{ window.location.href=`https://wa.me/5518996259121?text=${msg}`; },4500);
     }
 
     function abrirPagina(){ pauseBGM(); stopSadLoop(); window.location.href="pagina.html"; }
@@ -455,7 +453,7 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
     function parseGroup(block, letter){
       const re=new RegExp(`\\[${letter}\\]([\\s\\S]*?)(?=\\n\\[|---FIM---)`,'m');
       const m=block.match(re); if(!m) return [];
-      return m[1].split('\n').map(l=>l.replace(/^\\s*-\\s*/,'').trim()).filter(Boolean);
+      return m[1].split('\n').map(l=>l.replace(/^\s*-\s*/,'').trim()).filter(Boolean);
     }
     const GROUPS={ M:parseGroup(ACRONYM_BLOCK,'M'), A:parseGroup(ACRONYM_BLOCK,'A'), R:parseGroup(ACRONYM_BLOCK,'R'), I:parseGroup(ACRONYM_BLOCK,'I'), N:parseGroup(ACRONYM_BLOCK,'N') };
     function pickOne(arr,avoid){ const pool=arr.filter(x=>x!==avoid); return pool.length?pool[Math.floor(Math.random()*pool.length)]:(arr[0]||''); }
