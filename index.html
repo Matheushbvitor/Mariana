@@ -6,52 +6,53 @@
   <title>MARIANA</title>
 
   <!-- 🔔 ALERTA DE VISITA (envio POST via Apps Script) -->
-  
-<script>
-  (function () {
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
+  <script>
+    (function () {
+      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
 
-    function payload() {
-      let tz = "";
-      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
-      return JSON.stringify({
-        ts: Date.now(),
-        tz,
-        ua: navigator.userAgent || "",
-        url: location.href,
-        ref: document.referrer || ""
-      });
-    }
+      function payload() {
+        let tz = "";
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
+        return JSON.stringify({
+          ts: Date.now(),
+          tz,
+          ua: navigator.userAgent || "",
+          url: location.href,
+          ref: document.referrer || ""
+        });
+      }
 
-    let sent = false;
-    function sendOnce() { if (sent) return; sent = true; postPing(); }
-
-    function postPing() {
-      const body = payload();
-      try {
-        if ("sendBeacon" in navigator) {
-          // Enviar string diretamente; o navegador define text/plain;charset=UTF-8
-          navigator.sendBeacon(WEBAPP_URL, body);
-        } else {
-          fetch(WEBAPP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" }, // simple header para no-cors
-            body,
-            keepalive: true,
-          });
+      let sent = false;
+      function postPing() {
+        if (sent) return;
+        sent = true;
+        const body = payload();
+        try {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(WEBAPP_URL, body);
+          } else {
+            fetch(WEBAPP_URL, {
+              method: "POST",
+              mode: "no-cors",
+              keepalive: true,
+              body: body
+            });
+          }
+        } catch (e) {
+          console.error("Erro ao enviar ping:", e);
         }
-      } catch {}
-    }
+      }
 
-    // Disparos redundantes com deduplicação
-    document.addEventListener('DOMContentLoaded', sendOnce, { once: true });
-    window.addEventListener('pageshow', sendOnce, { once: true });
-    window.addEventListener('load', sendOnce, { once: true });
-    document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') sendOnce(); });
-    window.addEventListener('pagehide', sendOnce);
-  })();
-</script>
+      // Disparos em eventos chave, com deduplicação
+      document.addEventListener("DOMContentLoaded", postPing);
+      window.addEventListener("pageshow", postPing);
+      window.addEventListener("load", postPing);
+      window.addEventListener("pagehide", postPing);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") postPing();
+      });
+    })();
+  </script>
 
   <style>
     /* ===== BASE ===== */
@@ -372,7 +373,7 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
       if(index>=texto.length){ destino.style.borderRight='none'; return; }
       const c=texto.charAt(index);
       if(c===' '){ destino.append(' '); index++; return setTimeout(digitarSequencial,BASE_INTERVAL); }
-      if(c===`\n`){ destino.appendChild(document.createElement('br')); index++; return setTimeout(digitarSequencial,BASE_INTERVAL+SENTENCE_PAUSE); }
+      if(c==='\n'){ destino.appendChild(document.createElement('br')); index++; return setTimeout(digitarSequencial,BASE_INTERVAL+SENTENCE_PAUSE); }
       const span=document.createElement('span'); span.textContent='❤️'; span.style.display='inline'; span.style.opacity='1';
       span.style.transition=`opacity ${FADE_DURATION}ms ease`; destino.appendChild(span);
       setTimeout(()=>{ span.style.opacity='0'; setTimeout(()=>{ span.textContent=c; span.style.opacity='1'; index++; setTimeout(digitarSequencial,nextDelayFor(c)); },FADE_DURATION); },REVEAL_DELAY);
