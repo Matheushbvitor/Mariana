@@ -6,51 +6,52 @@
   <title>MARIANA</title>
 
   <!-- 🔔 ALERTA DE VISITA (envio POST via Apps Script) -->
-  <script>
-    (function () {
-      const WEBAPP_URL =
-        "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
+  
+<script>
+  (function () {
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
 
-      function payload() {
-        let tz = "";
-        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
-        return JSON.stringify({
-          ts: Date.now(),
-          tz,
-          ua: navigator.userAgent || "",
-          url: location.href,
-          ref: document.referrer || ""
-        });
-      }
-      function postPing() {
-        const body = payload();
-        try {
-          if ("sendBeacon" in navigator) {
-            const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
-            navigator.sendBeacon(WEBAPP_URL, blob);
-          } else {
-            fetch(WEBAPP_URL, {
-              method: "POST",
-              mode: "no-cors",
-              headers: { "Content-Type": "text/plain;charset=UTF-8" },
-              body,
-              keepalive: true,
-            });
-          }
-        } catch {}
-      }
-      addEventListener("load", () => {
-        const KEY = "visitPingSent";
-        try {
-          if (!sessionStorage.getItem(KEY)) {
-            sessionStorage.setItem(KEY, "1");
-            postPing();
-          }
-        } catch { postPing(); }
+    function payload() {
+      let tz = "";
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
+      return JSON.stringify({
+        ts: Date.now(),
+        tz,
+        ua: navigator.userAgent || "",
+        url: location.href,
+        ref: document.referrer || ""
       });
-      addEventListener("pagehide", postPing);
-    })();
-  </script>
+    }
+
+    let sent = false;
+    function sendOnce() { if (sent) return; sent = true; postPing(); }
+
+    function postPing() {
+      const body = payload();
+      try {
+        if ("sendBeacon" in navigator) {
+          // Enviar string diretamente; o navegador define text/plain;charset=UTF-8
+          navigator.sendBeacon(WEBAPP_URL, body);
+        } else {
+          fetch(WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" }, // simple header para no-cors
+            body,
+            keepalive: true,
+          });
+        }
+      } catch {}
+    }
+
+    // Disparos redundantes com deduplicação
+    document.addEventListener('DOMContentLoaded', sendOnce, { once: true });
+    window.addEventListener('pageshow', sendOnce, { once: true });
+    window.addEventListener('load', sendOnce, { once: true });
+    document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') sendOnce(); });
+    window.addEventListener('pagehide', sendOnce);
+  })();
+</script>
 
   <style>
     /* ===== BASE ===== */
@@ -336,7 +337,7 @@
       pauseBGM(); stopSadLoop();
       await playFromElementOrNew('feliznavida-audio','feliznavida.mp3',0.5);
       const msg = encodeURIComponent('Você tem chance Matheusão !!🤩💚');
-      setTimeout(()=>{ window.location.href=`https://wa.me/5518996259121?text=${msg}`; },4500);
+      setTimeout(()=>{ window.location.href=`https://wa.me/5.518996259121e+12?text=${msg}`; },4500);
     }
 
     function abrirPagina(){ pauseBGM(); stopSadLoop(); window.location.href="pagina.html"; }
@@ -371,7 +372,7 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
       if(index>=texto.length){ destino.style.borderRight='none'; return; }
       const c=texto.charAt(index);
       if(c===' '){ destino.append(' '); index++; return setTimeout(digitarSequencial,BASE_INTERVAL); }
-      if(c==='\n'){ destino.appendChild(document.createElement('br')); index++; return setTimeout(digitarSequencial,BASE_INTERVAL+SENTENCE_PAUSE); }
+      if(c===`\n`){ destino.appendChild(document.createElement('br')); index++; return setTimeout(digitarSequencial,BASE_INTERVAL+SENTENCE_PAUSE); }
       const span=document.createElement('span'); span.textContent='❤️'; span.style.display='inline'; span.style.opacity='1';
       span.style.transition=`opacity ${FADE_DURATION}ms ease`; destino.appendChild(span);
       setTimeout(()=>{ span.style.opacity='0'; setTimeout(()=>{ span.textContent=c; span.style.opacity='1'; index++; setTimeout(digitarSequencial,nextDelayFor(c)); },FADE_DURATION); },REVEAL_DELAY);
@@ -453,7 +454,7 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
     function parseGroup(block, letter){
       const re=new RegExp(`\\[${letter}\\]([\\s\\S]*?)(?=\\n\\[|---FIM---)`,'m');
       const m=block.match(re); if(!m) return [];
-      return m[1].split('\n').map(l=>l.replace(/^\s*-\s*/,'').trim()).filter(Boolean);
+      return m[1].split('\n').map(l=>l.replace(/^\\s*-\\s*/,'').trim()).filter(Boolean);
     }
     const GROUPS={ M:parseGroup(ACRONYM_BLOCK,'M'), A:parseGroup(ACRONYM_BLOCK,'A'), R:parseGroup(ACRONYM_BLOCK,'R'), I:parseGroup(ACRONYM_BLOCK,'I'), N:parseGroup(ACRONYM_BLOCK,'N') };
     function pickOne(arr,avoid){ const pool=arr.filter(x=>x!==avoid); return pool.length?pool[Math.floor(Math.random()*pool.length)]:(arr[0]||''); }
