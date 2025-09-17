@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MARIANA</title>
 
-  <!-- 🔔 ALERTA DE VISITA v2 (deduplicado; usa sendBeacon/fetch keepalive; payload text/plain) -->
+  <!-- 🔔 ALERTA DE VISITA v2 (1x por visita; sendBeacon/fetch keepalive; text/plain) -->
   <script>
     (function () {
       const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbywQp57GZYvrej_zR1m12Sh006xtAXP6QuhmC5KbL0DmDK-qvJoNbEUT-rOhz100Bo/exec";
+      const DEBUG = false;
 
       // Gera/recupera um ID de sessão para deduplicação no servidor
       const SID_KEY = "visitSid";
@@ -44,6 +45,7 @@
           if ("sendBeacon" in navigator) {
             const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
             navigator.sendBeacon(WEBAPP_URL, blob);
+            if (DEBUG) console.log("[PING] sendBeacon:", evt);
           } else {
             fetch(WEBAPP_URL, {
               method: "POST",
@@ -51,16 +53,22 @@
               headers: { "Content-Type": "text/plain;charset=UTF-8" },
               body,
               keepalive: true
-            }).catch(()=>{});
+            }).catch(()=>{}).finally(()=>{ if (DEBUG) console.log("[PING] fetch:", evt); });
           }
-        } catch {}
+        } catch (e) {
+          if (DEBUG) console.warn("[PING] erro:", e);
+        }
       }
 
       // Envia UMA vez por visita
       let sent = false;
-      function sendOnce(evt) { if (sent) return; sent = true; postPing(evt); }
+      function sendOnce(evt) {
+        if (sent) return;
+        sent = true;
+        postPing(evt);
+      }
 
-      // Preferência: quando a aba fica oculta
+      // Preferência: quando a aba fica oculta (usuário vai embora/fecha)
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") sendOnce("hidden");
       });
@@ -106,7 +114,6 @@
     /* ===== CARD (engloba tudo e fica centralizado) ===== */
     .card{
       position:relative; z-index:2;
-      /* FIX mobile center: usar largura responsiva dentro do padding do .stage */
       width:100%;
       max-width:900px;
       margin-inline:auto;
@@ -127,17 +134,13 @@
       box-shadow:0 10px 30px rgba(0,0,0,.25);
     }
 
-    /* FIX mobile center: respeitar safe areas e garantir centralização */
     @media (max-width: 768px) {
       .stage{
         padding-left: max(16px, env(safe-area-inset-left));
         padding-right: max(16px, env(safe-area-inset-right));
         justify-items:center;
       }
-      .card{
-        width:100%;
-        max-width:900px;
-      }
+      .card{ width:100%; max-width:900px; }
     }
 
     h1.title{
@@ -149,7 +152,6 @@
     }
     .title-emoji{ display:inline-block; transition:opacity .26s ease; }
 
-    /* Bloco de texto com largura confortável, centralizado dentro do card */
     .typing{
       font-size:clamp(1rem,4.2vw,1.3rem);
       line-height:1.6;
@@ -185,7 +187,6 @@
     .btn:active{ transform:scale(.98) } .btn:hover{ filter:brightness(1.06) }
     .yes{ background:#4CAF50; color:#fff } .no{ background:#f44336; color:#fff } .why{ background:#ff9800; color:#fff; position:relative; overflow:visible }
 
-    /* Destaque do botão "Por que..." */
     .why.attn{ animation: why-pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(255,152,0,.55); }
     .why.attn::before{
       content:""; position:absolute; inset:-6px; border-radius:12px;
@@ -207,14 +208,12 @@
     }
     .btn .emo{ margin-left:.35em; display:inline-block; transform:translateY(1px) }
 
-    /* ===== Modal ===== */
     .dialog-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); justify-content:center; align-items:center; padding:16px; z-index:50; }
     .dialog-box{ width:min(460px,92vw); background:rgba(255,255,255,.96); border-radius:12px; padding:20px; text-align:center; box-shadow:0 12px 36px rgba(0,0,0,.35); backdrop-filter:blur(2px); }
     .dialog-box p{ margin:0 0 16px; font-size:18px; color:#333; white-space: pre-wrap; }
     .dialog-buttons{ display:flex; gap:12px; justify-content:center; }
     .dialog-buttons button{ padding:10px 18px; border:none; border-radius:8px; font-size:16px; cursor:pointer }
 
-    /* ===== Acrônimo DENTRO do card, centralizado e sem fundo próprio ===== */
     #acronymFull{
       width:100%;
       max-width:min(760px,92vw);
