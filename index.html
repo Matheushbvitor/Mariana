@@ -116,7 +116,7 @@
       transition:transform .15s ease,filter .15s ease;
       min-height:44px;
       text-align:center;
-      white-space:normal;           /* permite quebrar em 2 linhas quando necessário */
+      white-space:normal;  /* permite quebrar linha quando necessário */
       line-height:1.25;
     }
 
@@ -487,18 +487,33 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
     }
     function nextAcronym(){ currentSet=(currentSet+1)%ACRONYM_SETS.length; swapAcronym(ACRONYM_SETS[currentSet]); }
 
-    /* ✅ Mesma largura para os 3 botões (dinâmico, sem quebrar layout) */
-    function unifyButtonWidths(){
-      const btns = Array.from(document.querySelectorAll('.button-container .btn'));
-      if(!btns.length) return;
-      // reset para medir tamanho natural
-      btns.forEach(b => { b.style.width = ''; });
-      const max = Math.max(...btns.map(b => b.offsetWidth));
-      const maxClamped = Math.min(max, Math.floor(window.innerWidth * 0.92)); // segura em telas pequenas
-      btns.forEach(b => b.style.width = maxClamped + 'px');
+    /* 🔧 Ajuste estético: deixa o botão amarelo com a MESMA largura dos outros */
+    function setWhyWidthLikeOthers(){
+      const why = document.getElementById('whyBtn');
+      const yes = document.getElementById('yesBtn');
+      const no  = document.getElementById('noBtn');
+      if(!why || !yes || !no) return;
+
+      // mede a largura TOTAL (inclui padding/borda) dos dois botões de referência
+      const getTotal = (el) => el.offsetWidth;
+
+      // pega o maior entre verde e vermelho (eles já têm o mesmo tamanho)
+      const refTotal = Math.max(getTotal(yes), getTotal(no));
+
+      // para atribuir corretamente a largura, precisamos converter p/ "content box"
+      const toContentWidth = (el, total) => {
+        const cs = getComputedStyle(el);
+        const pl = parseFloat(cs.paddingLeft)||0, pr = parseFloat(cs.paddingRight)||0;
+        const bl = parseFloat(cs.borderLeftWidth)||0, br = parseFloat(cs.borderRightWidth)||0;
+        return Math.max(0, total - pl - pr - bl - br);
+      };
+
+      // aplica apenas no botão amarelo
+      why.style.width = toContentWidth(why, refTotal) + 'px';
     }
+
     let resizeTimer=null;
-    window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(unifyButtonWidths,120); });
+    window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(setWhyWidthLikeOthers,120); });
 
     const CYCLE_MS = 4000;
     window.addEventListener('load', ()=>{
@@ -519,8 +534,8 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
 
       setupAutoplay();
 
-      // aplica largura unificada após render
-      setTimeout(unifyButtonWidths, 50);
+      // aplica o ajuste de largura do botão amarelo depois que tudo renderiza
+      setTimeout(setWhyWidthLikeOthers, 50);
     });
   </script>
 </body>
