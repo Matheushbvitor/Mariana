@@ -49,6 +49,7 @@
 
   <style>
     :root{ --bg-dim: .75; }
+
     html, body { max-width: 100%; overflow-x: hidden; }
     body{
       margin:0; min-height:100svh; background:#000;
@@ -108,6 +109,8 @@
       width:100%; max-width:min(760px,92vw);
       display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:6px;
     }
+
+    /* 🔧 Botões com largura uniforme (mesma para os 3) */
     .btn{
       display:inline-block; text-decoration:none;
       padding:clamp(12px,3.5vw,18px) clamp(20px,5vw,32px);
@@ -117,14 +120,16 @@
       min-height:44px;
       text-align:center;
       line-height:1.25;
-      white-space:normal; /* verde/vermelho podem quebrar */
+      width: min(520px, 88%);   /* ➜ todos com a MESMA largura */
+      box-sizing: border-box;
+      white-space:normal;       /* o verde e o vermelho podem quebrar se precisarem */
     }
     .btn:active{ transform:scale(.98) } .btn:hover{ filter:brightness(1.06) }
     .yes{ background:#4CAF50; color:#fff }
     .no { background:#f44336; color:#fff }
     .why{ background:#ff9800; color:#fff; position:relative; overflow:visible; white-space:nowrap; } /* 🔒 sem quebra no amarelo */
 
-    /* Destaque do botão "Por que..." — mantém brilho/pulso, SEM mãozinha */
+    /* Destaque do botão amarelo (sem mãozinha) */
     .why.attn{ animation: why-pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(255,152,0,.55); }
     .why.attn::before{
       content:""; position:absolute; inset:-6px; border-radius:12px;
@@ -150,7 +155,7 @@
     .dialog-buttons{ display:flex; gap:12px; justify-content:center; }
     .dialog-buttons button{ padding:10px 18px; border:none; border-radius:8px; font-size:16px; cursor:pointer }
 
-    /* Acrônimo */
+    /* ===== Acrônimo ===== */
     #acronymFull{
       width:100%; max-width:min(760px,92vw); margin:12px auto 0; padding:0;
       background:transparent; border-radius:0;
@@ -224,6 +229,7 @@
         <button id="noBtn"  class="btn no"  onclick="mostrarMensagemNao()">Não tenho chance! <span class="emo" role="img" aria-label="triste">🙁</span></button>
       </div>
 
+      <!-- Acrônimo -->
       <section id="acronymFull" aria-live="polite" aria-atomic="true"></section>
     </div>
   </div>
@@ -267,7 +273,7 @@
 
     async function playFromElementOrNew(id, src, volume=0.5){
       const el=document.getElementById(id);
-      const tryP=async a=>{ try{ a.volume=volume; a.currentTime=0; await a.play(); return true; } catch { return false; } };
+      const tryP=async a=>{try{a.volume=volume;a.currentTime=0;await a.play();return true}catch{return false}};
       if(el && await tryP(el)) return true;
       const dyn=new Audio(src); dyn.preload='auto'; dyn.volume=volume;
       return await tryP(dyn);
@@ -441,11 +447,4 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
         const span=document.createElement('div'); span.className='text'; span.textContent=txt;
         row.appendChild(chip); row.appendChild(span); wrapper.appendChild(row);
       });
-      return wrapper;
-    }
-
-    function renderFullAcronym(lines){
-      const full=document.getElementById('acronymFull'); if(!full) return;
-      const wrapper=buildWrapper(lines);
-
-     
+      retu
