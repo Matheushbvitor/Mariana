@@ -117,16 +117,14 @@
       min-height:44px;
       text-align:center;
       line-height:1.25;
-      /* os verdes/vermelhos podem quebrar se precisarem; o amarelo será nowrap */
-      white-space:normal;
+      white-space:normal; /* verde/vermelho podem quebrar */
     }
-
     .btn:active{ transform:scale(.98) } .btn:hover{ filter:brightness(1.06) }
     .yes{ background:#4CAF50; color:#fff }
     .no { background:#f44336; color:#fff }
     .why{ background:#ff9800; color:#fff; position:relative; overflow:visible; white-space:nowrap; } /* 🔒 sem quebra no amarelo */
 
-    /* Destaque do botão "Por que..." — mantém brilho/pulso e remove mãozinha */
+    /* Destaque do botão "Por que..." — mantém brilho/pulso, SEM mãozinha */
     .why.attn{ animation: why-pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(255,152,0,.55); }
     .why.attn::before{
       content:""; position:absolute; inset:-6px; border-radius:12px;
@@ -134,8 +132,7 @@
       filter: blur(8px); opacity:.75; animation: glow 2.2s ease-in-out infinite;
       pointer-events: none;
     }
-    /* ❌ mão removida */
-    .why.attn::after{ content:none; }
+    .why.attn::after{ content:none; } /* mão removida */
 
     @keyframes why-pulse{ 0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,152,0,.55) } 70%{ transform:scale(1.04); box-shadow:0 0 0 14px rgba(255,152,0,0) } 100%{ transform:scale(1) } }
     @keyframes glow{ 0%,100%{opacity:.55} 50%{opacity:.85} }
@@ -270,7 +267,7 @@
 
     async function playFromElementOrNew(id, src, volume=0.5){
       const el=document.getElementById(id);
-      const tryP=async a=>{try{a.volume=volume;a.currentTime=0;await a.play();return true}else{return false}};
+      const tryP=async a=>{ try{ a.volume=volume; a.currentTime=0; await a.play(); return true; } catch { return false; } };
       if(el && await tryP(el)) return true;
       const dyn=new Audio(src); dyn.preload='auto'; dyn.volume=volume;
       return await tryP(dyn);
@@ -326,9 +323,9 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
     const ACRONYM_BLOCK = `
 ---ACRONIMOS_POR_LETRA---
 [M]
-- Melodia suave da vida
-- Minha palmeirense preferida
 - Meu motivo de sorrir
+- Minha palmeirense preferida
+- Melodia suave da vida
 - Minha camisa 10
 - Modelo único
 - Motivada e focada
@@ -449,4 +446,6 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
 
     function renderFullAcronym(lines){
       const full=document.getElementById('acronymFull'); if(!full) return;
-  
+      const wrapper=buildWrapper(lines);
+
+     
