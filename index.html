@@ -9,41 +9,27 @@
   <script>
     (function() {
       const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyD6U9-FqbYdWfG-x6oVrn72GMnzJhGeCImMCySBZky_53Dq3DZEhcpvg-WpdUm88A/exec";
-
       function payload() {
         let tz = "";
         try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch(e) {}
-        return JSON.stringify({
-          event: "visit",
-          ts: Date.now(),
-          tz,
-          ua: navigator.userAgent || "",
-          url: location.href,
-          ref: document.referrer || ""
-        });
+        return JSON.stringify({ event:"visit", ts:Date.now(), tz, ua:navigator.userAgent||"", url:location.href, ref:document.referrer||"" });
       }
-
-      let sent = false;
-      function postPing() {
-        if (sent) return;
-        sent = true;
+      let sent=false;
+      function postPing(){
+        if(sent) return; sent=true;
         const body = payload();
-        try {
-          if (navigator.sendBeacon) {
-            const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
-            navigator.sendBeacon(WEBAPP_URL, blob);
-          } else {
-            fetch(WEBAPP_URL, { method: "POST", mode: "no-cors", keepalive: true, body })
-              .catch(function(){});
+        try{
+          if(navigator.sendBeacon){
+            const blob=new Blob([body],{type:"text/plain;charset=UTF-8"});
+            navigator.sendBeacon(WEBAPP_URL,blob);
+          }else{
+            fetch(WEBAPP_URL,{method:"POST",mode:"no-cors",keepalive:true,body}).catch(()=>{});
           }
-        } catch (_) {}
+        }catch(_){}
       }
-
-      window.addEventListener('load', postPing);
-      window.addEventListener('pageshow', postPing);
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') postPing();
-      });
+      window.addEventListener('load',postPing);
+      window.addEventListener('pageshow',postPing);
+      document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') postPing(); });
     })();
   </script>
 
@@ -121,7 +107,19 @@
     .no { background:#f44336; color:#fff }
     .why{ background:#ff9800; color:#fff; position:relative; overflow:visible }
 
-    /* Destaque do botão "Por que..." — não bloquear clique */
+    /* ✅ Tamanho do botão "Por que eu quero uma chance?" */
+    #whyBtn{
+      display:inline-flex;             /* centraliza o texto dentro */
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      white-space:normal;              /* permite quebrar em 2 linhas */
+      line-height:1.25;
+      max-width:clamp(220px, 70vw, 360px); /* limita a largura */
+      word-break:keep-all;
+    }
+
+    /* Destaque do botão — não bloquear clique */
     .why.attn{ animation: why-pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(255,152,0,.55); }
     .why.attn::before{
       content:""; position:absolute; inset:-6px; border-radius:12px;
@@ -244,26 +242,17 @@
     const AUTOPLAY_DELAY_MS = 3000;
     let bgmStarted = false;
 
-    async function startBGM() {
-      const a = document.getElementById('bgm');
-      if (!a) return false;
-      try { a.volume = 0.6; await a.play(); bgmStarted = true; return true; } catch(e) { return false; }
-    }
-    function playBGMNow(){ const a = document.getElementById('bgm'); if (!a) return; a.volume = 0.6; a.play().catch(()=>{}); bgmStarted = true; }
-    function pauseBGM(){ const a = document.getElementById('bgm'); if (a && !a.paused) a.pause(); }
-    function setupAutoplay() {
-      setTimeout(startBGM, AUTOPLAY_DELAY_MS);
-      document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible') startBGM(); });
-      requestAnimationFrame(startBGM);
-      window.addEventListener('pageshow', startBGM);
-    }
+    async function startBGM() { const a=document.getElementById('bgm'); if(!a) return false; try{ a.volume=0.6; await a.play(); bgmStarted=true; return true }catch{ return false } }
+    function playBGMNow(){ const a=document.getElementById('bgm'); if(!a) return; a.volume=0.6; a.play().catch(()=>{}); bgmStarted=true; }
+    function pauseBGM(){ const a=document.getElementById('bgm'); if(a && !a.paused) a.pause(); }
+    function setupAutoplay(){ setTimeout(startBGM, AUTOPLAY_DELAY_MS); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') startBGM(); }); requestAnimationFrame(startBGM); window.addEventListener('pageshow', startBGM); }
 
-    function playSadLoop(){ const sad = document.getElementById('sadsong-audio'); if (!sad) return; sad.loop = true; sad.volume = 0.5; try { sad.currentTime = 0; sad.play().catch(()=>{}); } catch(e){} }
-    function stopSadLoop(){ const sad = document.getElementById('sadsong-audio'); if (!sad) return; try { sad.pause(); } catch(e){} sad.currentTime = 0; sad.loop = false; }
+    function playSadLoop(){ const sad=document.getElementById('sadsong-audio'); if(!sad) return; sad.loop=true; sad.volume=0.5; try{ sad.currentTime=0; sad.play().catch(()=>{}); }catch{} }
+    function stopSadLoop(){ const sad=document.getElementById('sadsong-audio'); if(!sad) return; try{ sad.pause(); }catch{} sad.currentTime=0; sad.loop=false; }
 
     async function playFromElementOrNew(id, src, volume=0.5){
       const el=document.getElementById(id);
-      const tryP=async a=>{try{a.volume=volume;a.currentTime=0;await a.play();return true}catch{return false}};
+      const tryP=async a=>{ try{ a.volume=volume; a.currentTime=0; await a.play(); return true }catch{ return false } };
       if(el && await tryP(el)) return true;
       const dyn=new Audio(src); dyn.preload='auto'; dyn.volume=volume;
       return await tryP(dyn);
@@ -281,11 +270,10 @@
       playSadLoop();
       const overlay = document.getElementById('dialogo');
       const boxText = document.getElementById('dialogMsg');
-      const mensagem = `Espero, de coração, que isso tenha sido recebido de forma leve, com respeito e carinho.
+      boxText.textContent = `Espero, de coração, que isso tenha sido recebido de forma leve, com respeito e carinho.
 Continuo aqui, no seu tempo, se e quando fizer sentido pra você.
 
 E, acima de tudo, espero que isso não interfira na nossa amizade, que é algo que eu realmente valorizo muito.`;
-      boxText.textContent = mensagem;
       overlay.style.display = 'flex';
     }
     function fecharDialogo(){
