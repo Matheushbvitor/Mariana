@@ -49,7 +49,6 @@
 
   <style>
     :root{ --bg-dim: .75; }
-
     html, body { max-width: 100%; overflow-x: hidden; }
     body{
       margin:0; min-height:100svh; background:#000;
@@ -110,7 +109,7 @@
       display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:6px;
     }
 
-    /* 🔧 Botões com largura uniforme (mesma para os 3) */
+    /* 🔧 LARGURA UNIFORME E SEM QUEBRA NO AMARELO */
     .btn{
       display:inline-block; text-decoration:none;
       padding:clamp(12px,3.5vw,18px) clamp(20px,5vw,32px);
@@ -120,14 +119,19 @@
       min-height:44px;
       text-align:center;
       line-height:1.25;
-      width: min(520px, 88%);   /* ➜ todos com a MESMA largura */
-      box-sizing: border-box;
-      white-space:normal;       /* o verde e o vermelho podem quebrar se precisarem */
+      width:min(520px,88%);         /* ➜ MESMA largura para todos */
+      box-sizing:border-box;
     }
-    .btn:active{ transform:scale(.98) } .btn:hover{ filter:brightness(1.06) }
     .yes{ background:#4CAF50; color:#fff }
     .no { background:#f44336; color:#fff }
-    .why{ background:#ff9800; color:#fff; position:relative; overflow:visible; white-space:nowrap; } /* 🔒 sem quebra no amarelo */
+    .why{
+      background:#ff9800; color:#fff; position:relative; overflow:hidden;
+      white-space:nowrap;             /* ➜ NÃO quebra linha */
+      text-overflow:ellipsis;         /* segurança se faltar espaço */
+      font-size:clamp(.98rem,3.2vw,1.1rem); /* ligeiro ajuste para caber em 1 linha */
+    }
+
+    .btn:active{ transform:scale(.98) } .btn:hover{ filter:brightness(1.06) }
 
     /* Destaque do botão amarelo (sem mãozinha) */
     .why.attn{ animation: why-pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(255,152,0,.55); }
@@ -137,8 +141,7 @@
       filter: blur(8px); opacity:.75; animation: glow 2.2s ease-in-out infinite;
       pointer-events: none;
     }
-    .why.attn::after{ content:none; } /* mão removida */
-
+    .why.attn::after{ content:none; }
     @keyframes why-pulse{ 0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,152,0,.55) } 70%{ transform:scale(1.04); box-shadow:0 0 0 14px rgba(255,152,0,0) } 100%{ transform:scale(1) } }
     @keyframes glow{ 0%,100%{opacity:.55} 50%{opacity:.85} }
     .why.wiggle{ animation: wiggle 0.6s ease }
@@ -266,6 +269,9 @@
       document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible') startBGM(); });
       requestAnimationFrame(startBGM);
       window.addEventListener('pageshow', startBGM);
+      // 👉 garante start no primeiro toque
+      const onFirstUserInteract = () => { playBGMNow(); document.removeEventListener('pointerdown', onFirstUserInteract); };
+      document.addEventListener('pointerdown', onFirstUserInteract, { once:true });
     }
 
     function playSadLoop(){ const sad = document.getElementById('sadsong-audio'); if (!sad) return; sad.loop = true; sad.volume = 0.5; try { sad.currentTime = 0; sad.play().catch(()=>{}); } catch(e){} }
@@ -443,8 +449,4 @@ Com todo respeito, é claro… mas será que eu teria alguma chance com você?`;
         row.className=`row fx-${fx} in`;
         row.dataset.fx=fx;
         row.style.setProperty('--d','0ms');
-        const chip=document.createElement('div'); chip.className='letter anim'; chip.style.setProperty('--delay','0ms'); chip.textContent=letters[i]||'';
-        const span=document.createElement('div'); span.className='text'; span.textContent=txt;
-        row.appendChild(chip); row.appendChild(span); wrapper.appendChild(row);
-      });
-      retu
+        const chip=document
