@@ -236,7 +236,7 @@
 
   <script>
     /* ===== Música ===== */
-    const AUTOPLAY_DELAY_MS = 3000;
+    const AUTOPLAY_DELAY_MS = 1000;
     let bgmStarted=false;
     async function startBGM(){ const a=document.getElementById('bgm'); if(!a) return false; try{ a.volume=0.6; await a.play(); bgmStarted=true; return true; }catch{ return false; } }
     function playBGMNow(){ const a=document.getElementById('bgm'); if(!a) return; a.volume=0.6; a.play().catch(()=>{}); bgmStarted=true; }
@@ -263,7 +263,7 @@
     async function aceitou(){
       pauseBGM(); stopSadLoop();
       await playFromElementOrNew('feliznavida-audio','feliznavida.mp3',0.5);
-      const msg = encodeURIComponent('Você tem chance Matheusão !!🤩💚');
+      const msg = encodeURIComponent('');
       setTimeout(()=>{ window.location.href=`https://wa.me/5518996259121?text=${msg}`; },4500);
     }
 
